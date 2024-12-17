@@ -128,7 +128,7 @@ const searchModule = (function () {
         }
 
         let searchResults = [];
-        let counter = 1;
+        let counter = 0;
         let direction = 1; // This will help to alternate between future and past days
         const maxAttempts = 10; // Limit the number of attempts
 
@@ -137,7 +137,9 @@ const searchModule = (function () {
             let currentDate = new Date(dateInputValue);
 
             // Continue searching until results are found or attempts run out
-            while (true) {
+            while (searchResultsEmpty(searchResults)) {
+
+                currentDate.setDate(currentDate.getDate() + direction * counter);
                 // Fetch data for the current date
                 const promises = roverNames.map(async roverName => {
                     const formattedDate = currentDate.toISOString().split('T')[0]; // Format date as YYYY-MM-DD
@@ -153,15 +155,13 @@ const searchModule = (function () {
                 searchResults = await Promise.all(promises); // Wait for all fetches to complete
                 console.log(searchResults);
 
-                if(!searchResultsEmpty(searchResults)){
-                    currentDate = currentDate.toISOString().split('T')[0]; // Format date as YYYY-MM-DD
-                    return [searchResults , dateInputValue , currentDate];
-                }
-                // Alternate between next day and previous day
-                currentDate.setDate(currentDate.getDate() + direction * counter);
+
+                // Alternate between next day and previous da
                 direction = direction * -1; // Alternate between adding and subtracting days
                 counter++;
             }
+            currentDate = currentDate.toISOString().split('T')[0]; // Format date as YYYY-MM-DD
+            return [searchResults , dateInputValue , currentDate];
 
         } catch (error) {
             console.error("Error fetching rover data:", error);
