@@ -35,9 +35,12 @@ const eventsBinder = (function () {
 const handleSearch = (function (){
     async function handleSearchByEarthDate(event){
         event.preventDefault();
+        DOM.toggleSpinner(true);
         const searchResults =  await searchModule.searchByEarthDate();
-        // TODO add filters
+        DOM.toggleSpinner(false);
+        DOM.setupRoverFilter(searchResults);
         DOM.displayResults(searchResults);
+
     }
 
     return{handleSearchByEarthDate : handleSearchByEarthDate};
@@ -99,12 +102,13 @@ const searchModule = (function () {
     return {
         fetchRoverData: fetchRoverData,
         searchByEarthDate: searchByEarthDate,
+
     };
     //=======================================================================================================================
 })();
 
 const DOM = ( function () {
-
+    const roverSelect = document.querySelector("#roverSelect");
     const spinnerElement =  document.querySelector(".spinner-border");
     const searchByEarthDateForm = document.querySelector(".search-by-date-form");
     function toggleSpinner(show){
@@ -123,7 +127,7 @@ const DOM = ( function () {
             searchByEarthDateForm.classList.remove("d-none");
         }
     }
-    function displayResults(searchResults) {
+    function displayResults(searchResults, selectedRover = '') {
         const resultsContainer = document.querySelector(".search-results");
         resultsContainer.innerHTML = ''; // Clear previous results
 
@@ -133,6 +137,11 @@ const DOM = ( function () {
 
         searchResults?.forEach(result => {
             result?.photos?.forEach(photo => {
+                // Filter photos by selected rover
+                if (selectedRover && photo.rover.name !== selectedRover) {
+                    return; // Skip this photo if it doesn't match the selected rover
+                }
+
                 const photoCardHTML = `
                 <div class="col-sm-12 col-md-6 col-lg-3 mb-4">
                     <div class="card">
@@ -163,13 +172,40 @@ const DOM = ( function () {
         resultsContainer.appendChild(rowContainer);
     }
 
+    function displayRoverDropdown(roverNames) {
+        roverSelect.innerHTML = `<option value="">All Rovers</option>`;
+        roverNames.forEach(rover => {
+            const option = document.createElement("option");
+            option.value = rover;
+            option.textContent = rover;
+            roverSelect.appendChild(option);
+        });
+    }
+
+    function setupRoverFilter(searchResults) {
+
+        // Get unique rover names from the searchResults
+        const roverNames = [...new Set(searchResults.flatMap(result => result.photos.map(photo => photo.rover.name)))];
+
+        // Populate dropdown with rover names
+        displayRoverDropdown(roverNames);
+
+        // Add event listener for filtering photos by selected rover
+        roverSelect.addEventListener('change', (event) => {
+            const selectedRover = event.target.value;
+            displayResults(searchResults, selectedRover);
+        });
+
+        roverSelect.classList.remove("d-none");
+    }
 
 
 
 
     return {toggleSpinner: toggleSpinner,
             toggleSearchByDateForm: toggleSearchByDateForm,
-            displayResults: displayResults};
+            displayResults: displayResults ,
+            setupRoverFilter : setupRoverFilter,};
 })();
 
 // Initialize the app
