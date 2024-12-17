@@ -37,9 +37,12 @@ const handleSearch = (function (){
         event.preventDefault();
         DOM.toggleSpinner(true);
         DOM.emptySearchResultsAndRemoveRovers();
-        const searchResults =  await searchModule.searchByEarthDate();
+        const [searchResults , inputDate , foundDate] =  await searchModule.searchByEarthDate();
+
+        DOM.checkDateSimilarity(inputDate , foundDate);
+
         DOM.toggleSpinner(false);
-        if (searchResults === false){
+        if (searchResults === null){
             DOM.toggleInvalidEarthDate(true);
             return;
         }
@@ -108,18 +111,37 @@ const searchModule = (function () {
         return false;  // The date is not valid for any rover
     }
 
+    function searchResultsEmpty(searchResults) {
+        // Check if any result has photos, return false if any result has photos
+        if(searchResults){
+            return searchResults.every(result => result.photos.length === 0);
+        }
+        return true;
+    }
+
+
 
     async function searchByEarthDate() {
         const dateInputValue = earthDateInput.value.trim();
         if (!validateEarthDate(dateInputValue)){
-            return false;
+            return [null, dateInputValue, null];
         }
 
-        if (dateInputValue) {
-            try {
-                // Use async/await in the map function to fetch data for each rover
+        let searchResults = [];
+        let counter = 1;
+        let direction = 1; // This will help to alternate between future and past days
+        const maxAttempts = 10; // Limit the number of attempts
+
+        try {
+            // Parse the input date to create a Date object
+            let currentDate = new Date(dateInputValue);
+
+            // Continue searching until results are found or attempts run out
+            while (true) {
+                // Fetch data for the current date
                 const promises = roverNames.map(async roverName => {
-                    const response = await fetch(`${ROVER_DATA_ENDPOINT}/${roverName}/photos?${API_KEY_PARAMETER}&earth_date=${dateInputValue}`);
+                    const formattedDate = currentDate.toISOString().split('T')[0]; // Format date as YYYY-MM-DD
+                    const response = await fetch(`${ROVER_DATA_ENDPOINT}/${roverName}/photos?${API_KEY_PARAMETER}&earth_date=${formattedDate}`);
 
                     if (!response.ok) {
                         throw new Error(`HTTP error! Status: ${response.status}`);
@@ -128,14 +150,21 @@ const searchModule = (function () {
                     return await response.json();
                 });
 
-                const searchResults = await Promise.all(promises); // Wait for all fetches to complete
+                searchResults = await Promise.all(promises); // Wait for all fetches to complete
                 console.log(searchResults);
-                return searchResults;
-            } catch (error) {
-                console.error("Error fetching rover data:", error);
+
+                if(!searchResultsEmpty(searchResults)){
+                    currentDate = currentDate.toISOString().split('T')[0]; // Format date as YYYY-MM-DD
+                    return [searchResults , dateInputValue , currentDate];
+                }
+                // Alternate between next day and previous day
+                currentDate.setDate(currentDate.getDate() + direction * counter);
+                direction = direction * -1; // Alternate between adding and subtracting days
+                counter++;
             }
-        } else {
-            console.log("Please enter a valid Earth Date.");
+
+        } catch (error) {
+            console.error("Error fetching rover data:", error);
         }
     }
 
@@ -156,7 +185,23 @@ const DOM = ( function () {
     const cameraSelect = document.querySelector("#cameraSelect");
     const invalidEarthDateMsg = document.querySelector("#invalid-earth-date");
     const resultsContainer = document.querySelector(".search-results");
+    const differentDateMsg = document.querySelector("#different-date-msg");
 
+
+    function checkDateSimilarity(inputDate, foundDate){
+        if(foundDate){
+            if(inputDate !== foundDate){
+                inputDate = inputDate.split("-").reverse().join("/");
+                foundDate = foundDate.split("-").reverse().join("/");
+
+                differentDateMsg.innerHTML =  `No photos were found for <strong>${inputDate}</strong>. Showing results for the closest available date: <strong>${foundDate}</strong>.`
+                differentDateMsg.classList.remove("d-none");
+            }
+            else{
+                differentDateMsg.classList.add("d-none");
+            }
+        }
+    }
     function toggleCameraSelect(show){
         if (show){
             cameraSelect.classList.remove("d-none");
@@ -318,7 +363,7 @@ const DOM = ( function () {
             setupRoverFilter : setupRoverFilter,
             toggleInvalidEarthDate : toggleInvalidEarthDate,
         emptySearchResultsAndRemoveRovers : emptySearchResultsAndRemoveRovers,
-        toggleCameraSelect :toggleCameraSelect,
+        checkDateSimilarity :checkDateSimilarity
     };
 })();
 
