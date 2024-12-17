@@ -187,6 +187,7 @@ const DOM = ( function () {
     const resultsContainer = document.querySelector(".search-results");
     const differentDateMsg = document.querySelector("#different-date-msg");
     const dateInputElement = document.getElementById("earthDateInput");
+    const modalImage = document.getElementById('modalImage');
 
     function checkDateSimilarity(inputDate, foundDate){
         if(foundDate){
@@ -242,7 +243,7 @@ const DOM = ( function () {
             searchByEarthDateForm.classList.remove("d-none");
         }
     }
-    function displayResults(searchResults, selectedRover = '' , selectedCamera = '') {
+    function displayResults(searchResults, selectedRover = '', selectedCamera = '') {
 
         resultsContainer.innerHTML = ''; // Clear previous results
 
@@ -250,46 +251,67 @@ const DOM = ( function () {
         const rowContainer = document.createElement('div');
         rowContainer.classList.add('row', 'd-flex', 'justify-content-center'); // Bootstrap classes to center cards
 
-
         searchResults?.forEach(result => {
             result?.photos?.forEach(photo => {
                 // Filter photos by selected rover
                 if (selectedRover && photo.rover.name !== selectedRover) {
                     return; // Skip this photo if it doesn't match the selected rover
                 }
-                if(selectedCamera && photo.camera.name !== selectedCamera) {
+                if (selectedCamera && photo.camera.name !== selectedCamera) {
                     return;
                 }
 
                 const photoCardHTML = `
-                <div class="col-sm-12 col-md-6 col-lg-3 mb-4">
-                    <div class="card">
-                        <div class="position-relative overflow-hidden" style="padding-top: 75%;">
-                            <img 
-                                src="${photo.img_src}" 
-                                class="card-img-top position-absolute top-0 w-100 h-100 object-fit-cover" 
-                                alt="Photo taken by ${photo.rover.name} on ${photo.earth_date}" 
-                                loading="lazy"
-                            />
-                        </div>
-                        <div class="card-body">
-                            <h5 class="card-title">Camera: ${photo.camera.full_name}</h5>
-                            <p class="card-text">
-                                Rover: ${photo.rover.name}<br/>
-                                Earth Date: ${photo.earth_date}<br/>
-                                Sol: ${photo.sol}
-                            </p>
-                        </div>
+            <div class="col-sm-12 col-md-6 col-lg-3 mb-4">
+                <div class="card">
+                    <div class="position-relative overflow-hidden" style="padding-top: 75%;">
+                        <img 
+                            src="${photo.img_src}" 
+                            class="card-img-top position-absolute top-0 w-100 h-100 object-fit-cover" 
+                            alt="Photo taken by ${photo.rover.name} on ${photo.earth_date}" 
+                            loading="lazy"
+                        />
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">Camera: ${photo.camera.full_name}</h5>
+                        <p class="card-text">
+                            Rover: ${photo.rover.name}<br/>
+                            Earth Date: ${photo.earth_date}<br/>
+                            Sol: ${photo.sol}
+                        </p>
+                        <button 
+                            class="btn btn-primary w-100 full-resolution-btn" data-img-src="${photo.img_src}""" 
+                        >
+                            View Full Resolution
+                        </button>
                     </div>
                 </div>
-            `;
+            </div>
+        `;
                 rowContainer.insertAdjacentHTML('beforeend', photoCardHTML);
             });
+        });
+
+
+        // Add click event listener for full-resolution buttons - event delegation
+        resultsContainer.addEventListener('click', function (e) {
+            if (e.target.classList.contains('full-resolution-btn')) {
+                const imageSrc = e.target.getAttribute('data-img-src');
+                openModal(imageSrc);
+            }
         });
 
         // Append the row container to the main results container
         resultsContainer.appendChild(rowContainer);
     }
+
+// Function to open the modal and display the image
+    function openModal(imageSrc) {
+        modalImage.src = imageSrc; // Set the image source
+        const photoModal = new bootstrap.Modal(document.getElementById('photoModal'));
+        photoModal.show(); // Show the modal
+    }
+
 
     function displayRoverDropdown(roverNames) {
         roverSelect.innerHTML = `<option value="">All Rovers</option>`;
