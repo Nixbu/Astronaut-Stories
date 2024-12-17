@@ -38,7 +38,7 @@ const handleSearch = (function (){
         DOM.toggleSpinner(true);
         const searchResults =  await searchModule.searchByEarthDate();
         DOM.toggleSpinner(false);
-        DOM.setupRoverFilter(searchResults);
+        let roverNames = DOM.setupRoverFilter(searchResults);
         DOM.displayResults(searchResults);
 
     }
@@ -111,6 +111,7 @@ const DOM = ( function () {
     const roverSelect = document.querySelector("#roverSelect");
     const spinnerElement =  document.querySelector(".spinner-border");
     const searchByEarthDateForm = document.querySelector(".search-by-date-form");
+    const cameraSelect = document.querySelector("#cameraSelect");
     function toggleSpinner(show){
         if (!show) {
             spinnerElement.classList.add("d-none");
@@ -127,7 +128,7 @@ const DOM = ( function () {
             searchByEarthDateForm.classList.remove("d-none");
         }
     }
-    function displayResults(searchResults, selectedRover = '') {
+    function displayResults(searchResults, selectedRover = '' , selectedCamera = '') {
         const resultsContainer = document.querySelector(".search-results");
         resultsContainer.innerHTML = ''; // Clear previous results
 
@@ -140,6 +141,9 @@ const DOM = ( function () {
                 // Filter photos by selected rover
                 if (selectedRover && photo.rover.name !== selectedRover) {
                     return; // Skip this photo if it doesn't match the selected rover
+                }
+                if(selectedCamera && photo.camera.name !== selectedCamera) {
+                    return;
                 }
 
                 const photoCardHTML = `
@@ -180,6 +184,7 @@ const DOM = ( function () {
             option.textContent = rover;
             roverSelect.appendChild(option);
         });
+
     }
 
     function setupRoverFilter(searchResults) {
@@ -194,10 +199,48 @@ const DOM = ( function () {
         roverSelect.addEventListener('change', (event) => {
             const selectedRover = event.target.value;
             displayResults(searchResults, selectedRover);
+            if(selectedRover === ""){
+                cameraSelect.classList.add("d-none");
+                return;
+            }
+            setUpCameraFilter(searchResults, selectedRover);
         });
 
         roverSelect.classList.remove("d-none");
+
+        return roverNames;
     }
+
+    function displayCameraDropdown(cameraNames) {
+        cameraSelect.innerHTML = `<option value="">All Cameras</option>`;
+        cameraNames.forEach(camera => {
+            const option = document.createElement("option");
+            option.value = camera;
+            option.textContent = camera;
+            cameraSelect.appendChild(option);
+        });
+    }
+
+    function setUpCameraFilter(searchResults, selectedRover) {
+        // Filter the photos by the selected rover
+        const filteredPhotos = searchResults.flatMap(result =>
+            result.photos.filter(photo => photo.rover.name === selectedRover)
+        );
+
+        // Extract unique camera names from the filtered photos
+        const cameraNames = [...new Set(filteredPhotos.map(photo => photo.camera.name))];
+
+        displayCameraDropdown(cameraNames);
+
+
+        cameraSelect.addEventListener('change', (event) => {
+            const selectedCamera = event.target.value;
+            displayResults(searchResults, selectedRover , selectedCamera);
+        });
+        cameraSelect.classList.remove("d-none");
+
+    }
+
 
 
 
