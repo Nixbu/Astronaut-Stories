@@ -36,9 +36,16 @@ const handleSearch = (function (){
     async function handleSearchByEarthDate(event){
         event.preventDefault();
         DOM.toggleSpinner(true);
+        DOM.emptySearchResultsAndRemoveRovers();
         const searchResults =  await searchModule.searchByEarthDate();
         DOM.toggleSpinner(false);
-        let roverNames = DOM.setupRoverFilter(searchResults);
+        if (searchResults === false){
+            DOM.toggleInvalidEarthDate(true);
+            return;
+        }
+        DOM.toggleInvalidEarthDate(false);
+
+        DOM.setupRoverFilter(searchResults);
         DOM.displayResults(searchResults);
 
     }
@@ -51,6 +58,7 @@ const searchModule = (function () {
     const earthDateInput = document.querySelector("#earthDateInput");
     let roverData = null;
     let roverNames = null;
+    let roverActivityRanges = {};
     // Fetch rover data from the API
     async function fetchRoverData() {
         try {
@@ -63,15 +71,49 @@ const searchModule = (function () {
             roverNames = roverData?.rovers?.map(rover => rover.name);
             console.log(roverNames);
             console.log(roverData); // Log the fetched data to verify
+
+            roverData?.rovers?.forEach(rover => {
+                roverActivityRanges[rover.name] = {
+                    landing_date: rover.landing_date,
+                    max_date: rover.max_date
+                };
+            });
+
+
             return roverData;
         } catch (error) {
             console.error("Error fetching rover data:", error);
         }
     }
 
+    function validateEarthDate(earthDate) {
+        const date = new Date(earthDate);  // Convert the input string to a Date object
+
+        // Check if the earthDate is a valid date
+        if (isNaN(date)) {
+            return false;
+        }
+
+        // Iterate over each rover and check if the date is within its activity range
+        for (let roverName in roverActivityRanges) {
+            const roverRange = roverActivityRanges[roverName];
+            const roverLandingDate = new Date(roverRange.landing_date);
+            const roverMaxDate = new Date(roverRange.max_date);
+
+            // Check if the earthDate is within the rover's range
+            if (date >= roverLandingDate && date <= roverMaxDate) {
+                return true;  // The date is valid for this rover
+            }
+        }
+        return false;  // The date is not valid for any rover
+    }
+
+
     async function searchByEarthDate() {
         const dateInputValue = earthDateInput.value.trim();
-        console.log(dateInputValue);
+        if (!validateEarthDate(dateInputValue)){
+            return false;
+        }
 
         if (dateInputValue) {
             try {
@@ -112,6 +154,32 @@ const DOM = ( function () {
     const spinnerElement =  document.querySelector(".spinner-border");
     const searchByEarthDateForm = document.querySelector(".search-by-date-form");
     const cameraSelect = document.querySelector("#cameraSelect");
+    const invalidEarthDateMsg = document.querySelector("#invalid-earth-date");
+    const resultsContainer = document.querySelector(".search-results");
+
+    function toggleCameraSelect(show){
+        if (show){
+            cameraSelect.classList.remove("d-none");
+        }
+        else {
+            cameraSelect.classList.add("d-none");
+        }
+    }
+    function emptySearchResultsAndRemoveRovers(){
+        resultsContainer.innerHTML = "";
+        toggleCameraSelect(false);
+        roverSelect.classList.add("d-none");
+    }
+
+    function toggleInvalidEarthDate(show){
+        if(show){
+            invalidEarthDateMsg.classList.remove("d-none");
+        }
+        else{
+            invalidEarthDateMsg.classList.add("d-none");
+        }
+    }
+
     function toggleSpinner(show){
         if (!show) {
             spinnerElement.classList.add("d-none");
@@ -129,7 +197,7 @@ const DOM = ( function () {
         }
     }
     function displayResults(searchResults, selectedRover = '' , selectedCamera = '') {
-        const resultsContainer = document.querySelector(".search-results");
+
         resultsContainer.innerHTML = ''; // Clear previous results
 
         // Create a wrapper for centering the content
@@ -208,7 +276,6 @@ const DOM = ( function () {
 
         roverSelect.classList.remove("d-none");
 
-        return roverNames;
     }
 
     function displayCameraDropdown(cameraNames) {
@@ -248,7 +315,11 @@ const DOM = ( function () {
     return {toggleSpinner: toggleSpinner,
             toggleSearchByDateForm: toggleSearchByDateForm,
             displayResults: displayResults ,
-            setupRoverFilter : setupRoverFilter,};
+            setupRoverFilter : setupRoverFilter,
+            toggleInvalidEarthDate : toggleInvalidEarthDate,
+        emptySearchResultsAndRemoveRovers : emptySearchResultsAndRemoveRovers,
+        toggleCameraSelect :toggleCameraSelect,
+    };
 })();
 
 // Initialize the app
