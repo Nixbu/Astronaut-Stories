@@ -3,14 +3,14 @@ const API_KEY_PARAMETER = `api_key=${API_KEY}`
 const ROVER_DATA_ENDPOINT = "https://api.nasa.gov/mars-photos/api/v1/rovers";
 
 // UI Module - Responsible for managing the DOM and events
-const UI = (function () {
-    function init() {
+const  UI = (function () {
+    async function init() {
         // Fetch data when the app initializes
-        searchModule.fetchRoverData().then(() => {
+            await searchModule.fetchRoverData();
             // Hide the spinner and show the UI once data is fetched
             document.querySelector(".spinner-border").classList.add("d-none");
             document.querySelector(".search-by-date-form").classList.remove("d-none");
-        });
+
 
         // Add event listener for the search button
         document
@@ -50,17 +50,20 @@ const searchModule = (function () {
         event.preventDefault();
         const dateInputValue = earthDateInput.value.trim();
         console.log(dateInputValue);
+
         if (dateInputValue) {
             try {
-                const promises = roverNames.map(roverName =>
-                    fetch(`${ROVER_DATA_ENDPOINT}/${roverName}/photos?${API_KEY_PARAMETER}&earth_date=${dateInputValue}`)
-                        .then(response => {
-                            if(!response.ok) {
-                                throw new Error(`HTTP error! Status: ${response.status}`);
-                            }
-                            return response.json()
-                        })
-                );
+                // Use async/await in the map function to fetch data for each rover
+                const promises = roverNames.map(async roverName => {
+                    const response = await fetch(`${ROVER_DATA_ENDPOINT}/${roverName}/photos?${API_KEY_PARAMETER}&earth_date=${dateInputValue}`);
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+
+                    return await response.json();
+                });
+
                 const searchResults = await Promise.all(promises); // Wait for all fetches to complete
 
                 console.log(searchResults); // Show the results
@@ -71,6 +74,7 @@ const searchModule = (function () {
             console.log("Please enter a valid Earth Date.");
         }
     }
+
 
 
     return {
