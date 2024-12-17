@@ -123,6 +123,7 @@ const searchModule = (function () {
 
     async function searchByEarthDate() {
         const dateInputValue = earthDateInput.value.trim();
+        console.log(dateInputValue);
         if (!validateEarthDate(dateInputValue)){
             return [null, dateInputValue, null];
         }
@@ -130,7 +131,6 @@ const searchModule = (function () {
         let searchResults = [];
         let counter = 0;
         let direction = 1; // This will help to alternate between future and past days
-        const maxAttempts = 10; // Limit the number of attempts
 
         try {
             // Parse the input date to create a Date object
@@ -175,8 +175,8 @@ const searchModule = (function () {
         searchByEarthDate: searchByEarthDate,
 
     };
-    //=======================================================================================================================
 })();
+//=======================================================================================================================
 
 const DOM = ( function () {
     const roverSelect = document.querySelector("#roverSelect");
@@ -186,13 +186,14 @@ const DOM = ( function () {
     const invalidEarthDateMsg = document.querySelector("#invalid-earth-date");
     const resultsContainer = document.querySelector(".search-results");
     const differentDateMsg = document.querySelector("#different-date-msg");
-
+    const dateInputElement = document.getElementById("earthDateInput");
 
     function checkDateSimilarity(inputDate, foundDate){
         if(foundDate){
             if(inputDate !== foundDate){
-                inputDate = inputDate.split("-").reverse().join("/");
-                foundDate = foundDate.split("-").reverse().join("/");
+                dateInputElement.value = foundDate;
+                inputDate = inputDate.split("-").reverse().join("-");
+                foundDate = foundDate.split("-").reverse().join("-");
 
                 differentDateMsg.innerHTML =  `No photos were found for <strong>${inputDate}</strong>. Showing results for the closest available date: <strong>${foundDate}</strong>.`
                 differentDateMsg.classList.remove("d-none");
@@ -248,6 +249,7 @@ const DOM = ( function () {
         // Create a wrapper for centering the content
         const rowContainer = document.createElement('div');
         rowContainer.classList.add('row', 'd-flex', 'justify-content-center'); // Bootstrap classes to center cards
+
 
         searchResults?.forEach(result => {
             result?.photos?.forEach(photo => {
