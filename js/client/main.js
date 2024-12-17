@@ -1,28 +1,48 @@
 const API_KEY = "lrufIrxkoorq8sriuuo3LdPU1Cnu1fnrIpr0kRm0";
 const API_KEY_PARAMETER = `api_key=${API_KEY}`
 const ROVER_DATA_ENDPOINT = "https://api.nasa.gov/mars-photos/api/v1/rovers";
-
+//=======================================================================================================================
 // UI Module - Responsible for managing the DOM and events
 const  UI = (function () {
+
     async function init() {
         // Fetch data when the app initializes
-            await searchModule.fetchRoverData();
-            // Hide the spinner and show the UI once data is fetched
-            document.querySelector(".spinner-border").classList.add("d-none");
-            document.querySelector(".search-by-date-form").classList.remove("d-none");
+        await searchModule.fetchRoverData();
+        // Hide the spinner and show the UI once data is fetched
+        DOM.toggleSpinner(false);
+        DOM.toggleSearchByDateForm(true);
 
+        eventsBinder.bindEvents();
 
-        // Add event listener for the search button
-        document
-            .querySelector(".search-by-earth-date-btn")
-            .addEventListener("click", searchModule.searchByEarthDate);
     }
+
 
     return {
         init: init,
     };
 })();
+//=======================================================================================================================
+const eventsBinder = (function () {
+    // Add event listener for the search button
+   function bindEvents(){
+       document
+           .querySelector(".search-by-earth-date-btn")
+           .addEventListener("click", handleSearch.handleSearchByEarthDate);
+   }
+   return {bindEvents : bindEvents};
+})();
+//=======================================================================================================================
+const handleSearch = (function (){
+    async function handleSearchByEarthDate(event){
+        event.preventDefault();
+        const searchResults =  await searchModule.searchByEarthDate();
+        // TODO add filters
+        DOM.displayResults(searchResults);
+    }
 
+    return{handleSearchByEarthDate : handleSearchByEarthDate};
+})();
+//=======================================================================================================================
 // Search Module - Handles fetching data and business logic related to search
 const searchModule = (function () {
     const earthDateInput = document.querySelector("#earthDateInput");
@@ -46,8 +66,7 @@ const searchModule = (function () {
         }
     }
 
-    async function searchByEarthDate(event) {
-        event.preventDefault();
+    async function searchByEarthDate() {
         const dateInputValue = earthDateInput.value.trim();
         console.log(dateInputValue);
 
@@ -65,8 +84,8 @@ const searchModule = (function () {
                 });
 
                 const searchResults = await Promise.all(promises); // Wait for all fetches to complete
-
-                console.log(searchResults); // Show the results
+                console.log(searchResults);
+                return searchResults;
             } catch (error) {
                 console.error("Error fetching rover data:", error);
             }
@@ -81,6 +100,76 @@ const searchModule = (function () {
         fetchRoverData: fetchRoverData,
         searchByEarthDate: searchByEarthDate,
     };
+    //=======================================================================================================================
+})();
+
+const DOM = ( function () {
+
+    const spinnerElement =  document.querySelector(".spinner-border");
+    const searchByEarthDateForm = document.querySelector(".search-by-date-form");
+    function toggleSpinner(show){
+        if (!show) {
+            spinnerElement.classList.add("d-none");
+        }
+        else {
+            spinnerElement.classList.remove("d-none");
+        }
+    }
+    function toggleSearchByDateForm(show){
+        if (!show) {
+            searchByEarthDateForm.classList.add("d-none");
+        }
+        else {
+            searchByEarthDateForm.classList.remove("d-none");
+        }
+    }
+    function displayResults(searchResults) {
+        const resultsContainer = document.querySelector(".search-results");
+        resultsContainer.innerHTML = ''; // Clear previous results
+
+        // Create a wrapper for centering the content
+        const rowContainer = document.createElement('div');
+        rowContainer.classList.add('row', 'd-flex', 'justify-content-center'); // Bootstrap classes to center cards
+
+        searchResults?.forEach(result => {
+            result?.photos?.forEach(photo => {
+                const photoCardHTML = `
+                <div class="col-sm-12 col-md-6 col-lg-3 mb-4">
+                    <div class="card">
+                        <div class="position-relative overflow-hidden" style="padding-top: 75%;">
+                            <img 
+                                src="${photo.img_src}" 
+                                class="card-img-top position-absolute top-0 w-100 h-100 object-fit-cover" 
+                                alt="Photo taken by ${photo.rover.name} on ${photo.earth_date}" 
+                                loading="lazy"
+                            />
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">Camera: ${photo.camera.full_name}</h5>
+                            <p class="card-text">
+                                Rover: ${photo.rover.name}<br/>
+                                Earth Date: ${photo.earth_date}<br/>
+                                Sol: ${photo.sol}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            `;
+                rowContainer.insertAdjacentHTML('beforeend', photoCardHTML);
+            });
+        });
+
+        // Append the row container to the main results container
+        resultsContainer.appendChild(rowContainer);
+    }
+
+
+
+
+
+    return {toggleSpinner: toggleSpinner,
+            toggleSearchByDateForm: toggleSearchByDateForm,
+            displayResults: displayResults};
 })();
 
 // Initialize the app
