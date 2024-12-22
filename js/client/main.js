@@ -193,6 +193,77 @@ const searchModule = (function () {
 
     };
 })();
+
+//=======================================================================================================================
+const photoListModule =(function () {
+
+
+    const photoList = [];
+
+    function addToList(photoId){
+        if (photoList.includes(photoId)) {
+            return false;
+        } else {
+            photoList.push(photoId);
+            return true;
+        }
+    }
+
+
+    return {addToList :addToList}
+})();
+
+//=======================================================================================================================
+const handlePhotoList = (function (){
+
+    function saveToList(event){
+        let photoId = event.target.dataset.photoId;
+
+        if(photoListModule.addToList(photoId)){
+            listDOM.showSaveSuccessMSG();
+        }
+        else{
+            listDOM.showSaveErrorMSG();
+        }
+    }
+
+
+
+
+
+    return {saveToList :saveToList}
+})();
+//=======================================================================================================================
+const listDOM = (function() {
+    const toastMessage = document.getElementById('toastMessage');
+    const toastElement = document.getElementById('saveToast');
+
+    function showSaveSuccessMSG() {
+        toastMessage.textContent = 'Photo saved successfully!';
+        toastElement.classList.add('bg-success');
+        toastElement.classList.remove('bg-danger');
+        showToast();
+    }
+
+    function showSaveErrorMSG() {
+        toastMessage.textContent = 'Error: Photo already saved.';
+        toastElement.classList.remove('bg-success');
+        toastElement.classList.add('bg-danger');
+        showToast();
+    }
+
+    function showToast() {
+
+        const toast = new bootstrap.Toast(toastElement);
+        toast.show();
+    }
+
+    return {
+        showSaveSuccessMSG,
+        showSaveErrorMSG
+    };
+
+})();
 //=======================================================================================================================
 
 const DOM = ( function () {
@@ -325,30 +396,36 @@ const DOM = ( function () {
 
                 const photoCardHTML = `
             <div class="col-sm-12 col-md-6 col-lg-3 mb-4">
-                <div class="card">
-                    <div class="position-relative overflow-hidden" style="padding-top: 75%;">
-                        <img 
-                            src="${photo.img_src}" 
-                            class="card-img-top position-absolute top-0 w-100 h-100 object-fit-cover" 
-                            alt="Photo taken by ${photo.rover.name} on ${photo.earth_date}" 
-                            loading="lazy"
-                        />
-                    </div>
-                    <div class="card-body">
-                        <h5 class="card-title">Camera: ${photo.camera.full_name}</h5>
-                        <p class="card-text">
-                            Rover: ${photo.rover.name}<br/>
-                            Earth Date: ${photo.earth_date}<br/>
-                            Sol: ${photo.sol}
-                        </p>
-                        <button 
-                            class="btn btn-primary w-100 full-resolution-btn" data-img-src="${photo.img_src}" 
-                        >
-                            View Full Resolution
-                        </button>
-                    </div>
-                </div>
-            </div>
+    <div class="card">
+        <div class="position-relative overflow-hidden" style="padding-top: 75%;">
+            <img 
+                src="${photo.img_src}" 
+                class="card-img-top position-absolute top-0 w-100 h-100 object-fit-cover" 
+                alt="Photo taken by ${photo.rover.name} on ${photo.earth_date}" 
+                loading="lazy"
+            />
+        </div>
+        <div class="card-body">
+            <h5 class="card-title">Camera: ${photo.camera.full_name}</h5>
+            <p class="card-text">
+                Rover: ${photo.rover.name}<br/>
+                Earth Date: ${photo.earth_date}<br/>
+                Sol: ${photo.sol}
+            </p>
+            <button 
+                class="btn btn-primary w-100 full-resolution-btn" data-img-src="${photo.img_src}" 
+            >
+                View Full Resolution
+            </button>
+            <button 
+                class="btn btn-warning w-100 mt-2 save-to-list-btn" 
+                data-photo-id="${photo.id}"
+            >
+                Save to List
+            </button>
+        </div>
+    </div>
+</div>
         `;
                 rowContainer.insertAdjacentHTML('beforeend', photoCardHTML);
             });
@@ -357,9 +434,14 @@ const DOM = ( function () {
 
         // Remove the existing event listener before adding a new one
         resultsContainer.removeEventListener('click', handleFullResolutionClick);
+        resultsContainer.removeEventListener('click', handlePhotoList.saveToList);
+
 
         // Add the new event listener for the full-resolution buttons
         resultsContainer.addEventListener('click', handleFullResolutionClick);
+        resultsContainer.addEventListener('click', handlePhotoList.saveToList);
+
+
 
         // Append the row container to the main results container
         resultsContainer.appendChild(rowContainer);

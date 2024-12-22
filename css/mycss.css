@@ -1,2 +1,13 @@
-/* no CSS is allowed except what cannot be done with bootstrap,
-such as defining some background images */
+.outer-space-bg {
+    background-image: url('../images/outerSpace.jpg');
+    width: 100%;
+    height:130px;
+}
+
+
+
+
+
+
+
+
