@@ -192,6 +192,8 @@ const searchModule = (function () {
 //=======================================================================================================================
 
 const DOM = ( function () {
+    const roverFilterContainer = document.querySelector("#roverContainer");
+    const cameraFilterContainer = document.querySelector("#cameraContainer");
     const roverSelect = document.querySelector("#roverSelect");
     const spinnerElement =  document.querySelector(".spinner-border");
     const searchByEarthDateForm = document.querySelector(".search-by-date-form");
@@ -237,16 +239,16 @@ const DOM = ( function () {
     }
     function toggleCameraSelect(show){
         if (show){
-            cameraSelect.classList.remove("d-none");
+            cameraFilterContainer.classList.remove("d-none");
         }
         else {
-            cameraSelect.classList.add("d-none");
+            cameraFilterContainer.classList.add("d-none");
         }
     }
     function emptySearchResultsAndRemoveRovers(){
         resultsContainer.innerHTML = "";
         toggleCameraSelect(false);
-        roverSelect.classList.add("d-none");
+        roverFilterContainer.classList.add("d-none");
     }
 
     function toggleInvalidEarthDate(show){
@@ -373,13 +375,13 @@ const DOM = ( function () {
             const selectedRover = event.target.value;
             displayResults(searchResults, selectedRover);
             if(selectedRover === ""){
-                cameraSelect.classList.add("d-none");
+                cameraFilterContainer.classList.add("d-none");
                 return;
             }
             setUpCameraFilter(searchResults, selectedRover);
         });
 
-        roverSelect.classList.remove("d-none");
+        roverFilterContainer.classList.remove("d-none");
 
     }
 
@@ -409,7 +411,7 @@ const DOM = ( function () {
             const selectedCamera = event.target.value;
             displayResults(searchResults, selectedRover , selectedCamera);
         });
-        cameraSelect.classList.remove("d-none");
+        cameraFilterContainer.classList.remove("d-none");
 
     }
 

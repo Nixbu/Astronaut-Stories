@@ -8,7 +8,6 @@
 </head>
 <body>
 <div class="container-fluid">
-
     <div class="row">
             <nav class="col navbar navbar-expand-lg navbar-light bg-light">
                 <div class="container-fluid">
@@ -66,22 +65,22 @@
                 <div id="searchFetchError" class="alert alert-danger d-none mt-4 col-md-4">
                 </div>
                 <div id="invalid-earth-date" class="alert alert-danger d-none mt-4 col-md-4">
-                    No rover activity at this date.
+                    No rover activity at this date. Images exists between 04-01-2004 and 08-12-2024.
                 </div>
                 <div class="alert alert-info d-none mt-4 col-md-4" id="different-date-msg">
                 </div>
             </div>
         <div class="col">
-            <div class="form-group ">
-                <label for="roverSelect"></label>
-                <select id="roverSelect" class="form-control d-none">
+            <div class="form-group d-none" id="roverContainer">
+                <label for="roverSelect">Filter by rover:</label>
+                <select id="roverSelect" class="form-control ">
                 </select>
             </div>
         </div>
         <div class="col">
-            <div class="form-group ">
-                <label for="cameraSelect"></label>
-                <select id="cameraSelect" class="form-control d-none">
+            <div class="form-group d-none" id="cameraContainer">
+                <label for="cameraSelect">Filter by camera:</label>
+                <select id="cameraSelect" class="form-control">
                 </select>
             </div>
         </div>
@@ -93,6 +92,9 @@
             </div>
         </div>
     </div>
+</div>
+<div id="photoListContainer" class="container-fluid">
+
 </div>
 <div class="modal fade" id="photoModal" tabindex="-1" aria-labelledby="photoModalLabel">
     <div class="modal-dialog modal-dialog-centered modal-lg">
