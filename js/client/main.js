@@ -5,6 +5,7 @@ const ROVER_DATA_ENDPOINT = "https://api.nasa.gov/mars-photos/api/v1/rovers";
 // UI Module - Responsible for managing the DOM and events
 const  UI = (function () {
 
+
     async function init() {
         // Fetch data when the app initializes
         await searchModule.fetchRoverData();
@@ -23,11 +24,13 @@ const  UI = (function () {
 })();
 //=======================================================================================================================
 const eventsBinder = (function () {
+
     // Add event listener for the search button
    function bindEvents(){
-       document
-           .querySelector(".search-by-earth-date-btn")
+       document.querySelector(".search-by-earth-date-btn")
            .addEventListener("click", handleSearch.handleSearchByEarthDate);
+       document.querySelector("#resetButton").addEventListener("click", DOM.resetForm);
+
    }
    return {bindEvents : bindEvents};
 })();
@@ -188,6 +191,10 @@ const DOM = ( function () {
     const differentDateMsg = document.querySelector("#different-date-msg");
     const dateInputElement = document.getElementById("earthDateInput");
     const modalImage = document.getElementById('modalImage');
+
+    function resetForm(){
+        emptySearchResultsAndRemoveRovers();
+    }
 
     function checkDateSimilarity(inputDate, foundDate){
         if(foundDate){
@@ -392,7 +399,8 @@ const DOM = ( function () {
             setupRoverFilter : setupRoverFilter,
             toggleInvalidEarthDate : toggleInvalidEarthDate,
         emptySearchResultsAndRemoveRovers : emptySearchResultsAndRemoveRovers,
-        checkDateSimilarity :checkDateSimilarity
+        checkDateSimilarity :checkDateSimilarity,
+        resetForm :resetForm
     };
 })();
 
