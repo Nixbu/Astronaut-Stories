@@ -7,14 +7,20 @@ const  UI = (function () {
 
 
     async function init() {
-        // Fetch data when the app initializes
-        await searchModule.fetchRoverData();
-        // Hide the spinner and show the UI once data is fetched
-        DOM.toggleSpinner(false);
-        DOM.toggleSearchByDateForm(true);
+        try{
+            await searchModule.fetchRoverData();
+            // Hide the spinner and show the UI once data is fetched
 
-        eventsBinder.bindEvents();
+            DOM.toggleSearchByDateForm(true);
 
+            eventsBinder.bindEvents();
+        }
+        catch(e) {
+            DOM.toggleErrorMSG(true , e.message);
+        }
+        finally {
+            DOM.toggleSpinner(false);
+        }
     }
 
 
@@ -36,23 +42,37 @@ const eventsBinder = (function () {
 })();
 //=======================================================================================================================
 const handleSearch = (function (){
+
     async function handleSearchByEarthDate(event){
-        event.preventDefault();
-        DOM.toggleSpinner(true);
-        DOM.emptySearchResultsAndRemoveRovers();
-        const [searchResults , inputDate , foundDate] =  await searchModule.searchByEarthDate();
+        DOM.toggleErrorMSG(false);
+        try{
+            event.preventDefault();
+            DOM.toggleSpinner(true);
+            DOM.emptySearchResultsAndRemoveRovers();
+            const [searchResults , inputDate , foundDate] =  await searchModule.searchByEarthDate();
 
-        DOM.checkDateSimilarity(inputDate , foundDate);
+            DOM.checkDateSimilarity(inputDate , foundDate);
 
-        DOM.toggleSpinner(false);
-        if (searchResults === null){
-            DOM.toggleInvalidEarthDate(true);
-            return;
+
+            if (searchResults === null){
+                DOM.toggleInvalidEarthDate(true);
+
+            }
+            //search went well
+            else{
+                DOM.toggleInvalidEarthDate(false);
+
+                DOM.setupRoverFilter(searchResults);
+                DOM.displayResults(searchResults);
+            }
         }
-        DOM.toggleInvalidEarthDate(false);
+        catch(error){
+            DOM.toggleErrorMSG(true , error.message);
+        }
+        finally {
+            DOM.toggleSpinner(false);
+        }
 
-        DOM.setupRoverFilter(searchResults);
-        DOM.displayResults(searchResults);
 
     }
 
@@ -67,29 +87,25 @@ const searchModule = (function () {
     let roverActivityRanges = {};
     // Fetch rover data from the API
     async function fetchRoverData() {
-        try {
-            const response = await fetch(`${ROVER_DATA_ENDPOINT}?${API_KEY_PARAMETER}`);
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
-            }
-            const data = await response.json();
-            roverData = data; // Save the fetched data
-            roverNames = roverData?.rovers?.map(rover => rover.name);
-            console.log(roverNames);
-            console.log(roverData); // Log the fetched data to verify
-
-            roverData?.rovers?.forEach(rover => {
-                roverActivityRanges[rover.name] = {
-                    landing_date: rover.landing_date,
-                    max_date: rover.max_date
-                };
-            });
-
-
-            return roverData;
-        } catch (error) {
-            console.error("Error fetching rover data:", error);
+        const response = await fetch(`${ROVER_DATA_ENDPOINT}?${API_KEY_PARAMETER}`);
+        if (!response.ok) {
+            throw new Error(`Couldn't connect to NASA's API. Please try again later. ${response.status}`);
         }
+        const data = await response.json();
+        roverData = data; // Save the fetched data
+        roverNames = roverData?.rovers?.map(rover => rover.name);
+        console.log(roverNames);
+        console.log(roverData); // Log the fetched data to verify
+
+        roverData?.rovers?.forEach(rover => {
+            roverActivityRanges[rover.name] = {
+                landing_date: rover.landing_date,
+                max_date: rover.max_date
+            };
+        });
+
+
+        return roverData;
     }
 
     function validateEarthDate(earthDate) {
@@ -134,8 +150,6 @@ const searchModule = (function () {
         let searchResults = [];
         let counter = 0;
         let direction = 1; // This will help to alternate between future and past days
-
-        try {
             // Parse the input date to create a Date object
             let currentDate = new Date(dateInputValue);
 
@@ -149,7 +163,7 @@ const searchModule = (function () {
                     const response = await fetch(`${ROVER_DATA_ENDPOINT}/${roverName}/photos?${API_KEY_PARAMETER}&earth_date=${formattedDate}`);
 
                     if (!response.ok) {
-                        throw new Error(`HTTP error! Status: ${response.status}`);
+                        throw new Error(`Couldn't connect to NASA's API. Please try again later. ${response.status}`);
                     }
 
                     return await response.json();
@@ -165,10 +179,6 @@ const searchModule = (function () {
             }
             currentDate = currentDate.toISOString().split('T')[0]; // Format date as YYYY-MM-DD
             return [searchResults , dateInputValue , currentDate];
-
-        } catch (error) {
-            console.error("Error fetching rover data:", error);
-        }
     }
 
 
@@ -191,6 +201,20 @@ const DOM = ( function () {
     const differentDateMsg = document.querySelector("#different-date-msg");
     const dateInputElement = document.getElementById("earthDateInput");
     const modalImage = document.getElementById('modalImage');
+    const ErrorMSG = document.querySelector("#searchFetchError");
+
+
+    function toggleErrorMSG(show , msg =""){
+
+        if(show){
+            ErrorMSG.innerHTML =`${msg}`;
+            ErrorMSG.classList.remove("d-none");
+        }
+        else{
+            ErrorMSG.innerHTML = '';
+            ErrorMSG.classList.add("d-none");
+        }
+    }
 
     function resetForm(){
         emptySearchResultsAndRemoveRovers();
@@ -400,7 +424,8 @@ const DOM = ( function () {
             toggleInvalidEarthDate : toggleInvalidEarthDate,
         emptySearchResultsAndRemoveRovers : emptySearchResultsAndRemoveRovers,
         checkDateSimilarity :checkDateSimilarity,
-        resetForm :resetForm
+        resetForm :resetForm,
+        toggleErrorMSG : toggleErrorMSG,
     };
 })();
 
