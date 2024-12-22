@@ -5,7 +5,6 @@ const ROVER_DATA_ENDPOINT = "https://api.nasa.gov/mars-photos/api/v1/rovers";
 // UI Module - Responsible for managing the DOM and events
 const  UI = (function () {
 
-
     async function init() {
         try{
             await searchModule.fetchRoverData();
@@ -31,11 +30,16 @@ const  UI = (function () {
 //=======================================================================================================================
 const eventsBinder = (function () {
 
-    // Add event listener for the search button
+
    function bindEvents(){
        document.querySelector(".search-by-earth-date-btn")
            .addEventListener("click", handleSearch.handleSearchByEarthDate);
        document.querySelector("#resetButton").addEventListener("click", DOM.resetForm);
+
+       let navButtons = document.querySelectorAll(".nav-btn");
+
+       navButtons.forEach(btn => {btn.addEventListener('click' , DOM.toggleScreens);});
+
 
    }
    return {bindEvents : bindEvents};
@@ -204,6 +208,31 @@ const DOM = ( function () {
     const dateInputElement = document.getElementById("earthDateInput");
     const modalImage = document.getElementById('modalImage');
     const ErrorMSG = document.querySelector("#searchFetchError");
+    const tabs = {"searchTab" : document.getElementById('searchTab'),
+                    "photoListTab" : document.getElementById('photoListTab'),
+                    "storyTab" : document.getElementById('storyTab')}
+
+    function toggleScreens(event) {
+        // Get the tab to show from the event
+
+        let barToShow = event.currentTarget.dataset.tab;
+
+        console.log()// Assuming you're using data-tab attribute on buttons or links
+
+        // Loop through the tabs object
+        for (let tab in tabs) {
+            // Get the element for each tab (assuming IDs match the keys in the tabs object)
+            let tabElement = tabs[tab];
+
+            if (tab === barToShow) {
+                // Show the tab
+                tabElement.classList.remove('d-none');  // Assuming 'd-none' class is used to hide the tab
+            } else {
+                // Hide the other tabs
+                tabElement.classList.add('d-none');
+            }
+        }
+    }
 
 
     function toggleErrorMSG(show , msg =""){
@@ -428,6 +457,7 @@ const DOM = ( function () {
         checkDateSimilarity :checkDateSimilarity,
         resetForm :resetForm,
         toggleErrorMSG : toggleErrorMSG,
+        toggleScreens :toggleScreens
     };
 })();
 
