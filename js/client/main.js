@@ -219,6 +219,9 @@ const photoListModule =(function () {
         photoList.push(photoDetails);
         return true;
     }
+    function removeFromList(photoId) {
+        photoList = photoList.filter(photo => photo.id !== photoId);
+    }
 
 
     return {addToList :addToList}
@@ -248,7 +251,9 @@ const handlePhotoList = (function (){
         else{
             listDOM.showSaveErrorMSG();
         }
+        listDOM.addImageElement(photoDetails);
     }
+
 
 
 
@@ -281,9 +286,32 @@ const listDOM = (function() {
         toast.show();
     }
 
+    function addImageElement(photoDetails) {
+        const taskListContainer = document.getElementById('imagesList');
+
+        // Generate HTML for each photo card
+        taskListContainer.innerHTML += `
+           <div class="card mb-3 mx-auto" style="max-width: 30rem;">
+    <img src="${photoDetails.imageSource}" class="card-img-top img-thumbnail" alt="Photo Thumbnail" style="max-height: 300px; object-fit: cover;">
+    <div class="card-body text-center">
+        <h5 class="card-title fs-6">Photo ID: ${photoDetails.id}</h5>
+        <p class="card-text small">
+            Rover: ${photoDetails.rover}<br>
+            Date: ${photoDetails.date}<br>
+            Sol: ${photoDetails.sol}
+        </p>
+        <input type="text" class="form-control form-control-sm mb-2" placeholder="Add a description">
+        <button class="btn btn-danger btn-sm" onclick="removePhoto('${photoDetails.id}')">Remove</button>
+    </div>
+</div>`;
+    }
+
+
+
     return {
         showSaveSuccessMSG,
-        showSaveErrorMSG
+        showSaveErrorMSG,
+        addImageElement
     };
 
 })();
