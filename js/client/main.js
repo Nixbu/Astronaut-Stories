@@ -319,12 +319,21 @@
         return {saveToList, removeFromList};
     })();
 //=======================================================================================================================
+    /**
+     * Module for handling saved photo list DOM operations
+     * @namespace listDOM
+     */
     const listDOM = (function () {
         const toastMessage = document.getElementById('toastMessage');
         const toastElement = document.getElementById('saveToast');
         const storyBtn = document.getElementById('storyBtn');
         const emptyListMsg = document.getElementById('emptyListMsg');
 
+
+        /**
+         * Toggles visibility of the story button and empty list message
+         * @param {boolean} show - Whether to show the story button
+         */
         function toggleStoryBtn(show) {
             if (show) {
                 storyBtn.classList.remove('d-none');
@@ -334,27 +343,42 @@
                 storyBtn.classList.add('d-none');
             }
         }
-
+        /**
+         * Shows success toast message for photo save operation
+         */
         function showSaveSuccessMSG() {
             toastMessage.textContent = 'Photo saved successfully!';
             toastElement.classList.add('bg-success');
             toastElement.classList.remove('bg-danger');
             showToast();
         }
-
+        /**
+         * Shows error toast message for duplicate photo save attempt
+         */
         function showSaveErrorMSG() {
             toastMessage.textContent = 'Error: Photo already saved.';
             toastElement.classList.remove('bg-success');
             toastElement.classList.add('bg-danger');
             showToast();
         }
-
+        /**
+         * Displays the toast notification
+         * @private
+         */
         function showToast() {
 
             const toast = new bootstrap.Toast(toastElement);
             toast.show();
         }
-
+        /**
+         * Adds a photo card element to the saved images list
+         * @param {Object} photoDetails - Details of the photo to add
+         * @param {string} photoDetails.imageSource - URL of the photo
+         * @param {string} photoDetails.id - Unique identifier of the photo
+         * @param {string} photoDetails.rover - Name of the rover that took the photo
+         * @param {string} photoDetails.date - Earth date when photo was taken
+         * @param {number} photoDetails.sol - Mars sol when photo was taken
+         */
         function addImageElement(photoDetails) {
             const taskListContainer = document.getElementById('imagesList');
 
@@ -387,7 +411,10 @@
 
     })();
 //=======================================================================================================================
-
+    /**
+     * Module for handling main application DOM operations
+     * @namespace DOM
+     */
     const DOM = (function () {
         const roverFilterContainer = document.querySelector("#roverContainer");
         const cameraFilterContainer = document.querySelector("#cameraContainer");
@@ -406,7 +433,10 @@
             "photoListTab": document.getElementById('photoListTab'),
             "storyTab": document.getElementById('storyTab')
         }
-
+        /**
+         * Tab elements mapping
+         * @type {Object.<string, HTMLElement>}
+         */
         function toggleScreens(event) {
             // Get the tab to show from the event
 
@@ -429,7 +459,10 @@
             }
         }
 
-
+        /**
+         * Toggles visibility between different screens/tabs
+         * @param {Event} event - Click event object
+         */
         function toggleErrorMSG(show, msg = "") {
 
             if (show) {
@@ -440,11 +473,17 @@
                 ErrorMSG.classList.add("d-none");
             }
         }
-
+        /**
+         * Resets the search form and clears results
+         */
         function resetForm() {
             emptySearchResultsAndRemoveRovers();
         }
-
+        /**
+         * Checks if input date matches found date and displays message if different
+         * @param {string} inputDate - Date entered by user
+         * @param {string} foundDate - Date returned from API
+         */
         function checkDateSimilarity(inputDate, foundDate) {
             if (foundDate) {
                 if (inputDate !== foundDate) {
@@ -459,7 +498,10 @@
                 }
             }
         }
-
+        /**
+         * Toggles visibility of camera selection dropdown
+         * @param {boolean} show - Whether to show the camera select
+         */
         function toggleCameraSelect(show) {
             if (show) {
                 cameraFilterContainer.classList.remove("d-none");
@@ -467,13 +509,21 @@
                 cameraFilterContainer.classList.add("d-none");
             }
         }
-
+        /**
+         * Clears search results and hides rover filter
+         */
         function emptySearchResultsAndRemoveRovers() {
             resultsContainer.innerHTML = "";
             toggleCameraSelect(false);
             roverFilterContainer.classList.add("d-none");
         }
-
+        /**
+         * Toggles visibility of invalid date message
+         * @param {boolean} show - Whether to show the message
+         * @param {Object} [dateRange={}] - Valid date range
+         * @param {string} dateRange.minDate - Earliest valid date
+         * @param {string} dateRange.maxDate - Latest valid date
+         */
         function toggleInvalidEarthDate(show, dateRange = {}) {
             if (show) {
                 invalidEarthDateMsg.innerHTML = `No rover activity at this date. Images exists between ${dateRange.minDate} and ${dateRange.maxDate}.`;
@@ -482,7 +532,10 @@
                 invalidEarthDateMsg.classList.add("d-none");
             }
         }
-
+        /**
+         * Toggles visibility of loading spinner
+         * @param {boolean} show - Whether to show the spinner
+         */
         function toggleSpinner(show) {
             if (!show) {
                 spinnerElement.classList.add("d-none");
@@ -490,7 +543,10 @@
                 spinnerElement.classList.remove("d-none");
             }
         }
-
+        /**
+         * Toggles visibility of earth date search form
+         * @param {boolean} show - Whether to show the form
+         */
         function toggleSearchByDateForm(show) {
             if (!show) {
                 searchByEarthDateForm.classList.add("d-none");
@@ -498,7 +554,12 @@
                 searchByEarthDateForm.classList.remove("d-none");
             }
         }
-
+        /**
+         * Displays search results in a grid layout
+         * @param {Array} searchResults - Array of photo search results
+         * @param {string} [selectedRover=''] - Selected rover filter
+         * @param {string} [selectedCamera=''] - Selected camera filter
+         */
         function displayResults(searchResults, selectedRover = '', selectedCamera = '') {
 
             resultsContainer.innerHTML = ''; // Clear previous results
@@ -558,22 +619,32 @@
             // Append the row container to the main results container
             resultsContainer.appendChild(rowContainer);
         }
-
+        /**
+         * Handles click events for full resolution photo viewing
+         * @param {Event} e - Click event object
+         */
         function handleFullResolutionClick(e) {
             if (e.target.classList.contains('full-resolution-btn')) {
                 const imageSrc = e.target.getAttribute('data-img-src');
                 openModal(imageSrc);
             }
         }
-
-        // Function to open the modal and display the image
+        /**
+         * Opens modal with full resolution photo
+         * @param {string} imageSrc - URL of full resolution image
+         * @private
+         */
         function openModal(imageSrc) {
             modalImage.src = imageSrc; // Set the image source
             const photoModal = new bootstrap.Modal(document.getElementById('photoModal'));
             photoModal.show(); // Show the modal
         }
 
-
+        /**
+         * Populates the rover dropdown menu with the given rover names.
+         *
+         * @param {string[]} roverNames - An array of rover names to display in the dropdown.
+         */
         function displayRoverDropdown(roverNames) {
             roverSelect.innerHTML = `<option value="">All Rovers</option>`;
             roverNames.forEach(rover => {
@@ -607,7 +678,11 @@
             roverFilterContainer.classList.remove("d-none");
 
         }
-
+        /**
+         * Sets up the rover filter dropdown based on search results and filters photos by the selected rover.
+         *
+         * @param {Object[]} searchResults - An array of search result objects containing photos and rover information.
+         */
         function displayCameraDropdown(cameraNames) {
             cameraSelect.innerHTML = `<option value="">All Cameras</option>`;
             cameraNames.forEach(camera => {
@@ -617,7 +692,12 @@
                 cameraSelect.appendChild(option);
             });
         }
-
+        /**
+         * Sets up the camera filter dropdown based on the selected rover and search results.
+         *
+         * @param {Object[]} searchResults - An array of search result objects containing photos and rover information.
+         * @param {string} selectedRover - The name of the selected rover for filtering the photos.
+         */
         function setUpCameraFilter(searchResults, selectedRover) {
             // Filter the photos by the selected rover
             const filteredPhotos = searchResults.flatMap(result =>
@@ -655,9 +735,18 @@
         };
     })();
 
+    /**
+     * Story module for creating and managing a photo carousel with Mars rover images.
+     *
+     * @module story
+     */
     const story = (function () {
         const storyContainer = document.querySelector("#storyContainer");
-
+        /**
+         * Creates a carousel of Mars rover photos from the search results.
+         * It also adds a progress bar, thumbnail navigation, and event listeners for
+         * carousel controls and navigation buttons.
+         */
         function createCarousel() {
             const cards = document.querySelectorAll('#imagesList .card');
 
