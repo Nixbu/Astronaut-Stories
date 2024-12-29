@@ -1,14 +1,28 @@
 (function () {
     'use strict';
 
-
+    /**
+     * API Key and Endpoint for NASA's Mars Rover Photos API
+     * @constant {string} API_KEY - NASA's API key for the Mars Rover Photos API.
+     * @constant {string} API_KEY_PARAMETER - Encoded API key for use in query parameters.
+     * @constant {string} ROVER_DATA_ENDPOINT - Endpoint for fetching data from NASA's Mars Rover Photos API.
+     */
     const API_KEY = "lrufIrxkoorq8sriuuo3LdPU1Cnu1fnrIpr0kRm0";
     const API_KEY_PARAMETER = `api_key=${API_KEY}`
     const ROVER_DATA_ENDPOINT = "https://api.nasa.gov/mars-photos/api/v1/rovers";
 //=======================================================================================================================
-// UI Module - Responsible for managing the DOM and events
+    /**
+     * UI Module - Responsible for managing the DOM and events.
+     * @namespace UI
+     */
     const UI = (function () {
-
+        /**
+         * Initialize the UI module.
+         * It listens for the DOMContentLoaded event and then fetches the rover data.
+         * Upon successful fetch, it shows the UI and binds necessary events.
+         * @async
+         * @function init
+         */
         async function init() {
             document.addEventListener('DOMContentLoaded', async function () {
                 // If you're using async code, you can wait here
@@ -35,10 +49,18 @@
         };
     })();
 //=======================================================================================================================
+    /**
+     * Event Binding Module - Responsible for binding events to UI elements.
+     * @namespace eventsBinder
+     */
     const eventsBinder = (function () {
 
         const resultsContainer = document.querySelector(".search-results");
 
+        /**
+         * Bind all relevant event listeners to UI elements.
+         * @function bindEvents
+         */
         function bindEvents() {
             document.querySelector(".search-by-earth-date-btn")
                 .addEventListener("click", handleSearch.handleSearchByEarthDate);
@@ -67,8 +89,17 @@
         return {bindEvents: bindEvents};
     })();
 //=======================================================================================================================
+    /**
+     * Search Handling Module - Manages the search functionality and coordinates UI updates.
+     * @namespace handleSearch
+     */
     const handleSearch = (function () {
-
+        /**
+         * Handle search by Earth date, fetch photos, and update the UI.
+         * @async
+         * @function handleSearchByEarthDate
+         * @param {Event} event - The click event from the search button.
+         */
         async function handleSearchByEarthDate(event) {
             DOM.toggleErrorMSG(false);
             try {
@@ -103,7 +134,10 @@
         return {handleSearchByEarthDate: handleSearchByEarthDate};
     })();
 //=======================================================================================================================
-// Search Module - Handles fetching data and business logic related to search
+    /**
+     * Search Module - Handles fetching data and business logic related to search.
+     * @namespace searchModule
+     */
     const searchModule = (function () {
         const earthDateInput = document.querySelector("#earthDateInput");
         let roverData = null;
@@ -112,7 +146,13 @@
         let minDate = null,
             maxDate = null;
 
-        // Fetch rover data from the API
+        /**
+         * Fetch rover data from NASA's API and store it locally.
+         * @async
+         * @function fetchRoverData
+         * @returns {Promise<Object>} The rover data fetched from NASA's API.
+         * @throws Will throw an error if the API call fails.
+         */
         async function fetchRoverData() {
             const response = await fetch(`${ROVER_DATA_ENDPOINT}?${API_KEY_PARAMETER}`);
             if (!response.ok) {
@@ -139,7 +179,12 @@
 
             return roverData;
         }
-
+        /**
+         * Validate if the Earth date is within the activity range of any rover.
+         * @function validateEarthDate
+         * @param {string} earthDate - The Earth date input by the user.
+         * @returns {boolean} True if the date is valid for any rover, otherwise false.
+         */
         function validateEarthDate(earthDate) {
             const date = new Date(earthDate);  // Convert the input string to a Date object
 
@@ -161,7 +206,12 @@
             }
             return false;  // The date is not valid for any rover
         }
-
+        /**
+         * Check if search results are empty.
+         * @function searchResultsEmpty
+         * @param {Array} searchResults - The array of search results.
+         * @returns {boolean} True if all search results have no photos, otherwise false.
+         */
         function searchResultsEmpty(searchResults) {
             // Check if any result has photos, return false if any result has photos
             if (searchResults) {
@@ -169,14 +219,24 @@
             }
             return true;
         }
-
+        /**
+         * Get the date range of all rover activity.
+         * @function getDateRange
+         * @returns {Object} An object with the minimum and maximum dates for rover activity.
+         */
         function getDateRange() {
             return {
                 "minDate": minDate,
                 "maxDate": maxDate
             }
         }
-
+        /**
+         * Search photos by Earth date, adjusting date if no photos are found.
+         * @async
+         * @function searchByEarthDate
+         * @returns {Promise<Array>} An array containing search results, input date, and found date.
+         * @throws Will throw an error if the API call fails.
+         */
         async function searchByEarthDate() {
             const dateInputValue = earthDateInput.value.trim();
 
@@ -228,11 +288,19 @@
     })();
 
 //=======================================================================================================================
+    /**
+     * Photo List Module - Manages the saved photos list.
+     * @namespace photoListModule
+     */
     const photoListModule = (function () {
 
         let photoList = [];
 
-
+        /**
+         * Adds a photo to the list if it's not already present.
+         * @param {Object} photoDetails - The details of the photo to add.
+         * @returns {boolean} - Returns true if the photo was added, false if it already exists.
+         */
         function addToList(photoDetails) {
             let exists;
 
@@ -252,11 +320,17 @@
             photoList.push(photoDetails);
             return true;
         }
-
+        /**
+         * Removes a photo from the list by its ID.
+         * @param {string} photoId - The ID of the photo to remove.
+         */
         function removePhoto(photoId) {
             photoList = photoList.filter(photo => photo.id !== photoId);
         }
-
+        /**
+         * Gets the number of photos in the list.
+         * @returns {number} - The current number of photos in the list.
+         */
         function listSize() {
             return photoList.length;
         }
@@ -269,8 +343,14 @@
     })();
 
 //=======================================================================================================================
+    /**
+     * HandlePhotoList - Handles events related to adding and removing photos from the saved list.
+     */
     const handlePhotoList = (function () {
-
+        /**
+         * Saves a photo to the list when the save button is clicked.
+         * @param {Event} event - The event triggered when the save button is clicked.
+         */
         function saveToList(event) {
             if (event.target.classList.contains("save-to-list-btn")) {
                 let photoId = event.target.dataset.photoId;
@@ -297,7 +377,10 @@
 
             }
         }
-
+        /**
+         * Removes a photo from the list when the remove button is clicked.
+         * @param {Event} event - The event triggered when the remove button is clicked.
+         */
         function removeFromList(event) {
             if (event.target.classList.contains('remove-card-btn')) {
                 let id = event.target.dataset.id;
