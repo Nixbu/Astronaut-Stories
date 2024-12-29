@@ -37,6 +37,7 @@
 //=======================================================================================================================
     const eventsBinder = (function () {
 
+        const resultsContainer = document.querySelector(".search-results");
 
         function bindEvents() {
             document.querySelector(".search-by-earth-date-btn")
@@ -55,6 +56,10 @@
                 story.createCarousel();
                 DOM.toggleScreens({currentTarget: {dataset: {tab: 'storyTab'}}});
             });
+
+            // Add the new event listener for the full-resolution buttons
+            resultsContainer.addEventListener('click', DOM.handleFullResolutionClick);
+            resultsContainer.addEventListener('click', handlePhotoList.saveToList);
 
 
         }
@@ -284,11 +289,12 @@
 
                 if (photoListModule.addToList(photoDetails)) {
                     listDOM.showSaveSuccessMSG();
+                    listDOM.addImageElement(photoDetails);
+                    listDOM.toggleStoryBtn(true);
                 } else {
                     listDOM.showSaveErrorMSG();
                 }
-                listDOM.addImageElement(photoDetails);
-                listDOM.toggleStoryBtn(true);
+
             }
         }
 
@@ -549,16 +555,6 @@
             });
 
 
-            // Remove the existing event listener before adding a new one
-            resultsContainer.removeEventListener('click', handleFullResolutionClick);
-            resultsContainer.removeEventListener('click', handlePhotoList.saveToList);
-
-
-            // Add the new event listener for the full-resolution buttons
-            resultsContainer.addEventListener('click', handleFullResolutionClick);
-            resultsContainer.addEventListener('click', handlePhotoList.saveToList);
-
-
             // Append the row container to the main results container
             resultsContainer.appendChild(rowContainer);
         }
@@ -644,16 +640,18 @@
 
 
         return {
-            toggleSpinner: toggleSpinner,
-            toggleSearchByDateForm: toggleSearchByDateForm,
-            displayResults: displayResults,
-            setupRoverFilter: setupRoverFilter,
-            toggleInvalidEarthDate: toggleInvalidEarthDate,
-            emptySearchResultsAndRemoveRovers: emptySearchResultsAndRemoveRovers,
-            checkDateSimilarity: checkDateSimilarity,
-            resetForm: resetForm,
-            toggleErrorMSG: toggleErrorMSG,
-            toggleScreens: toggleScreens
+            toggleSpinner,
+            toggleSearchByDateForm,
+            displayResults,
+            setupRoverFilter,
+            toggleInvalidEarthDate,
+            emptySearchResultsAndRemoveRovers,
+            checkDateSimilarity,
+            resetForm,
+            toggleErrorMSG,
+            toggleScreens,
+            handleFullResolutionClick
+
         };
     })();
 
