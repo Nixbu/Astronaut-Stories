@@ -66,7 +66,7 @@ const handleSearch = (function (){
 
 
             if (searchResults === null){
-                DOM.toggleInvalidEarthDate(true);
+                DOM.toggleInvalidEarthDate(true, searchModule.getDateRange());
 
             }
             //search went well
@@ -96,6 +96,8 @@ const searchModule = (function () {
     let roverData = null;
     let roverNames = null;
     let roverActivityRanges = {};
+    let minDate = null,
+        maxDate = null;
     // Fetch rover data from the API
     async function fetchRoverData() {
         const response = await fetch(`${ROVER_DATA_ENDPOINT}?${API_KEY_PARAMETER}`);
@@ -114,6 +116,11 @@ const searchModule = (function () {
                 max_date: rover.max_date
             };
         });
+
+        minDate = roverData?.rovers
+            ?.reduce((min, rover) => rover.landing_date < min ? rover.landing_date : min, "9999-12-31");
+        maxDate = roverData?.rovers
+            ?.reduce((max, rover) => rover.max_date > max ? rover.max_date : max, "0000-01-01");
 
 
         return roverData;
@@ -149,11 +156,17 @@ const searchModule = (function () {
         return true;
     }
 
-
+    function getDateRange()
+    {
+        return {
+            "minDate" : minDate,
+            "maxDate" : maxDate
+        }
+    }
 
     async function searchByEarthDate() {
         const dateInputValue = earthDateInput.value.trim();
-        console.log(dateInputValue);
+
         if (!validateEarthDate(dateInputValue)){
             return [null, dateInputValue, null];
         }
@@ -195,8 +208,9 @@ const searchModule = (function () {
 
 
     return {
-        fetchRoverData: fetchRoverData,
-        searchByEarthDate: searchByEarthDate,
+        fetchRoverData,
+        searchByEarthDate,
+        getDateRange
 
     };
 })();
@@ -444,8 +458,9 @@ const DOM = ( function () {
         roverFilterContainer.classList.add("d-none");
     }
 
-    function toggleInvalidEarthDate(show){
+    function toggleInvalidEarthDate(show, dateRange={}){
         if(show){
+            invalidEarthDateMsg.innerHTML = `No rover activity at this date. Images exists between ${dateRange.minDate} and ${dateRange.maxDate}.`;
             invalidEarthDateMsg.classList.remove("d-none");
         }
         else{
