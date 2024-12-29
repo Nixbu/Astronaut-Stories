@@ -224,10 +224,13 @@ const photoListModule =(function () {
     function removePhoto(photoId) {
         photoList = photoList.filter(photo => photo.id !== photoId);
     }
-
+    function listSize(){
+        return photoList.length;
+    }
 
     return {addToList,
-            removePhoto,}
+            removePhoto,
+        listSize,}
 })();
 
 //=======================================================================================================================
@@ -255,11 +258,12 @@ const handlePhotoList = (function (){
             listDOM.showSaveErrorMSG();
         }
         listDOM.addImageElement(photoDetails);
+        listDOM.toggleStoryBtn(true);
     }
 
     function removeFromList(event){
         if(event.target.classList.contains('remove-card-btn')){
-            let id = event.target.dataset.photoId;
+            let id = event.target.dataset.id;
             photoListModule.removePhoto(id);
 
 
@@ -267,12 +271,13 @@ const handlePhotoList = (function (){
             if (card) {
                 card.remove();  // Remove the card from the DOM
             }
+            let size =photoListModule.listSize();
+            console.log(size);
+            if(photoListModule.listSize() === 0){
+                listDOM.toggleStoryBtn(false);
+            }
         }
     }
-
-
-
-
 
     return {saveToList , removeFromList};
 })();
@@ -280,7 +285,19 @@ const handlePhotoList = (function (){
 const listDOM = (function() {
     const toastMessage = document.getElementById('toastMessage');
     const toastElement = document.getElementById('saveToast');
+    const storyBtn = document.getElementById('storyBtn');
+    const emptyListMsg = document.getElementById('emptyListMsg');
 
+    function toggleStoryBtn(show){
+        if(show){
+            storyBtn.classList.remove('d-none');
+            emptyListMsg.classList.add('d-none');
+        }
+        else{
+            emptyListMsg.classList.remove('d-none');
+            storyBtn.classList.add('d-none');
+        }
+    }
     function showSaveSuccessMSG() {
         toastMessage.textContent = 'Photo saved successfully!';
         toastElement.classList.add('bg-success');
@@ -329,6 +346,7 @@ const listDOM = (function() {
         showSaveSuccessMSG,
         showSaveErrorMSG,
         addImageElement,
+        toggleStoryBtn
     };
 
 })();
@@ -610,6 +628,17 @@ const DOM = ( function () {
         toggleScreens :toggleScreens
     };
 })();
+
+const carousel= (function () {
+
+
+
+
+    return {}
+})();
+
+
+
 
 // Initialize the app
 UI.init();
