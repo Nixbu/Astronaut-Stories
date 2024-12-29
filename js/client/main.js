@@ -40,6 +40,8 @@ const eventsBinder = (function () {
 
        navButtons.forEach(btn => {btn.addEventListener('click' , DOM.toggleScreens);});
 
+       document.querySelector("#imagesList").addEventListener("click", handlePhotoList.removeFromList );
+
 
    }
    return {bindEvents : bindEvents};
@@ -219,12 +221,13 @@ const photoListModule =(function () {
         photoList.push(photoDetails);
         return true;
     }
-    function removeFromList(photoId) {
+    function removePhoto(photoId) {
         photoList = photoList.filter(photo => photo.id !== photoId);
     }
 
 
-    return {addToList :addToList}
+    return {addToList,
+            removePhoto,}
 })();
 
 //=======================================================================================================================
@@ -254,12 +257,24 @@ const handlePhotoList = (function (){
         listDOM.addImageElement(photoDetails);
     }
 
+    function removeFromList(event){
+        if(event.target.classList.contains('remove-card-btn')){
+            let id = event.target.dataset.photoId;
+            photoListModule.removePhoto(id);
+
+
+            const card = event.target.closest('.card');  // Finds the nearest parent with class 'card'
+            if (card) {
+                card.remove();  // Remove the card from the DOM
+            }
+        }
+    }
 
 
 
 
 
-    return {saveToList :saveToList}
+    return {saveToList , removeFromList};
 })();
 //=======================================================================================================================
 const listDOM = (function() {
@@ -301,17 +316,19 @@ const listDOM = (function() {
             Sol: ${photoDetails.sol}
         </p>
         <input type="text" class="form-control form-control-sm mb-2" placeholder="Add a description">
-        <button class="btn btn-danger btn-sm" onclick="removePhoto('${photoDetails.id}')">Remove</button>
+        <button class="btn btn-danger btn-sm remove-card-btn" data-id="${photoDetails.id}">Remove</button>
     </div>
 </div>`;
-    }
 
+
+
+    }
 
 
     return {
         showSaveSuccessMSG,
         showSaveErrorMSG,
-        addImageElement
+        addImageElement,
     };
 
 })();
