@@ -197,16 +197,27 @@ const searchModule = (function () {
 //=======================================================================================================================
 const photoListModule =(function () {
 
+    let photoList =[];
 
-    const photoList = [];
 
-    function addToList(photoId){
-        if (photoList.includes(photoId)) {
+    function addToList(photoDetails) {
+        let exists;
+
+        // Use forEach to check if photoId already exists in the list
+        photoList.forEach(photo => {
+            if (photo.id === photoDetails.id) {
+                exists = true;
+            }
+        });
+
+        // If photoId exists, return false
+        if (exists) {
             return false;
-        } else {
-            photoList.push(photoId);
-            return true;
         }
+
+        // Otherwise, add photoDetails to the list and return true
+        photoList.push(photoDetails);
+        return true;
     }
 
 
@@ -218,8 +229,20 @@ const handlePhotoList = (function (){
 
     function saveToList(event){
         let photoId = event.target.dataset.photoId;
+        let rover = event.target.dataset.rover;
+        let date = event.target.dataset.date;
+        let sol = event.target.dataset.sol;
+        let imageSource = event.target.dataset.source;
 
-        if(photoListModule.addToList(photoId)){
+        let photoDetails = {
+            id: photoId,
+            rover: rover,
+            date: date,
+            sol: sol,
+            imageSource :imageSource
+        };
+
+        if(photoListModule.addToList(photoDetails)){
             listDOM.showSaveSuccessMSG();
         }
         else{
@@ -419,7 +442,7 @@ const DOM = ( function () {
             </button>
             <button 
                 class="btn btn-warning w-100 mt-2 save-to-list-btn" 
-                data-photo-id="${photo.id}"
+                data-photo-id="${photo.id}" data-source="${photo.img_src}" data-rover="${photo.rover.name}" data-date="${photo.earth_date}" data-sol="${photo.sol}"
             >
                 Save to List
             </button>
