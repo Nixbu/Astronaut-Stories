@@ -42,6 +42,11 @@ const eventsBinder = (function () {
 
        document.querySelector("#imagesList").addEventListener("click", handlePhotoList.removeFromList );
 
+       document.querySelector("#storyBtn").addEventListener("click", () => {
+           story.createCarousel();
+           DOM.toggleScreens({ currentTarget: { dataset: { tab: 'storyTab' } } });
+       });
+
 
    }
    return {bindEvents : bindEvents};
@@ -237,28 +242,30 @@ const photoListModule =(function () {
 const handlePhotoList = (function (){
 
     function saveToList(event){
-        let photoId = event.target.dataset.photoId;
-        let rover = event.target.dataset.rover;
-        let date = event.target.dataset.date;
-        let sol = event.target.dataset.sol;
-        let imageSource = event.target.dataset.source;
+        if(event.target.classList.contains("save-to-list-btn")){
+            let photoId = event.target.dataset.photoId;
+            let rover = event.target.dataset.rover;
+            let date = event.target.dataset.date;
+            let sol = event.target.dataset.sol;
+            let imageSource = event.target.dataset.source;
 
-        let photoDetails = {
-            id: photoId,
-            rover: rover,
-            date: date,
-            sol: sol,
-            imageSource :imageSource
-        };
+            let photoDetails = {
+                id: photoId,
+                rover: rover,
+                date: date,
+                sol: sol,
+                imageSource :imageSource
+            };
 
-        if(photoListModule.addToList(photoDetails)){
-            listDOM.showSaveSuccessMSG();
+            if(photoListModule.addToList(photoDetails)){
+                listDOM.showSaveSuccessMSG();
+            }
+            else{
+                listDOM.showSaveErrorMSG();
+            }
+            listDOM.addImageElement(photoDetails);
+            listDOM.toggleStoryBtn(true);
         }
-        else{
-            listDOM.showSaveErrorMSG();
-        }
-        listDOM.addImageElement(photoDetails);
-        listDOM.toggleStoryBtn(true);
     }
 
     function removeFromList(event){
@@ -629,12 +636,130 @@ const DOM = ( function () {
     };
 })();
 
-const carousel= (function () {
+const story = (function () {
+    const storyContainer = document.querySelector("#storyContainer");
 
+    function createCarousel() {
+        const cards = document.querySelectorAll('#imagesList .card');
 
+        let carouselHTML = `
+            <div class="container mt-4">
+                <div class="row justify-content-center">
+                    <div class="col-12 col-lg-10">
 
+                        <div class="progress mb-4">
+                            <div class="progress-bar bg-primary" role="progressbar"  aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        
 
-    return {}
+                        <div class="card border-0 shadow-lg">
+                            <div id="storyCarousel" class="carousel slide">
+                                <div class="carousel-inner">`;
+
+        cards.forEach((card, index) => {
+            const imgSrc = card.querySelector('img').src;
+            const description = card.querySelector('input[type="text"]').value;
+            const roverInfo = card.querySelector('.card-text').innerHTML;
+
+            carouselHTML += `
+                <div class="carousel-item ${index === 0 ? 'active' : ''}" data-index="${index}">
+                    <div class="ratio ratio-16x9">
+                        <img src="${imgSrc}" class="d-block w-100 object-fit-cover" alt="Mars Photo">
+                    </div>
+                    <div class="card-body bg-dark bg-opacity-75 text-white position-absolute bottom-0 start-0 end-0 m-3 rounded">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <div class="small mb-2">${roverInfo}</div>
+                                <p class="card-text fst-italic">"${description}"</p>
+                            </div>
+                            <div class="col-md-4 text-md-end">
+                                <span class="badge bg-primary fs-6">Photo ${index + 1} of ${cards.length}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+        });
+
+        carouselHTML += `
+                                </div>
+                                <button class="carousel-control-prev" type="button" data-bs-target="#storyCarousel" data-bs-slide="prev">
+                                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                    <span class="visually-hidden">Previous</span>
+                                </button>
+                                <button class="carousel-control-next" type="button" data-bs-target="#storyCarousel" data-bs-slide="next">
+                                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                    <span class="visually-hidden">Next</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="row g-2 mt-3 mb-4">`;
+
+        cards.forEach((card, index) => {
+            const imgSrc = card.querySelector('img').src;
+            carouselHTML += `
+                <div class="col-2">
+                    <img src="${imgSrc}" 
+                         class="img-thumbnail cursor-pointer thumbnail-nav" 
+                         data-bs-target="#storyCarousel" 
+                         data-bs-slide-to="${index}"
+                         style="cursor: pointer;"
+                         alt="Thumbnail ${index + 1}">
+                </div>`;
+        });
+
+        carouselHTML += `
+                        </div>
+
+                        <!-- Navigation buttons -->
+                        <div class="d-flex justify-content-center gap-3 mt-4">
+                            <button class="btn btn-primary btn-lg nav-btn mb-3" data-tab="searchTab">
+                                <i class="bi bi-search me-2"></i>Back to Search
+                            </button>
+                            <button class="btn btn-outline-primary btn-lg nav-btn mb-3" data-tab="photoListTab">
+                                <i class="bi bi-images me-2"></i>Back to Photo List
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+
+        storyContainer.innerHTML = carouselHTML;
+
+        // Initialize the carousel
+        const carousel = new bootstrap.Carousel(document.querySelector('#storyCarousel'), {
+            interval: false
+        });
+
+        // Update progress bar when carousel slides
+        const progressBar = document.querySelector('.progress-bar');
+        const totalSlides = cards.length;
+
+        document.querySelector('#storyCarousel').addEventListener('slide.bs.carousel', (event) => {
+            const nextSlideIndex = event.to;
+            const progress = ((nextSlideIndex + 1) / totalSlides) * 100;
+            progressBar.style.width = `${progress}%`;
+            progressBar.setAttribute('aria-valuenow', progress);
+        });
+
+        // Add event listeners to thumbnails
+        document.querySelectorAll('.thumbnail-nav').forEach(thumbnail => {
+            thumbnail.addEventListener('click', () => {
+                const slideIndex = parseInt(thumbnail.getAttribute('data-bs-slide-to'));
+                carousel.to(slideIndex);
+            });
+        });
+
+        // Add event listeners to the navigation buttons
+        const navButtons = storyContainer.querySelectorAll('.nav-btn');
+        navButtons.forEach(btn => {
+            btn.addEventListener('click', DOM.toggleScreens);
+        });
+    }
+
+    return {
+        createCarousel: createCarousel
+    };
 })();
 
 
