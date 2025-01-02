@@ -10,7 +10,8 @@ You can of course create additional HTML files and link them to the main file.
 
 ## Authors
 Always include all authors of the project, with their full names and emails (@edu.hac.ac.il).
-<p>Email (as appearing in moodle): student@hac.ac.il</p>
+<p>Email (as appearing in moodle): nirbu@hac.ac.il
+                                  itaymij@hac.ac.il<</p>
 
 ## Additional Information
 
