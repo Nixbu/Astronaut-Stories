@@ -825,12 +825,14 @@
      */
     const story = (function () {
         const storyContainer = document.querySelector("#storyContainer");
+        const emptyStoryMsg = document.querySelector("#noStoryMsg");
         /**
          * Creates a carousel of Mars rover photos from the search results.
          * It also adds a progress bar, thumbnail navigation, and event listeners for
          * carousel controls and navigation buttons.
          */
         function createCarousel() {
+            emptyStoryMsg.classList.add("d-none");
             const cards = document.querySelectorAll('#imagesList .card');
 
             let carouselHTML = `
