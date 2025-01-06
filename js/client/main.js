@@ -161,8 +161,7 @@
             const data = await response.json();
             roverData = data; // Save the fetched data
             roverNames = roverData?.rovers?.map(rover => rover.name);
-            console.log(roverNames);
-            console.log(roverData); // Log the fetched data to verify
+
 
             roverData?.rovers?.forEach(rover => {
                 roverActivityRanges[rover.name] = {
@@ -267,7 +266,7 @@
                 });
 
                 searchResults = await Promise.all(promises); // Wait for all fetches to complete
-                console.log(searchResults);
+
 
 
                 // Alternate between next day and previous da
@@ -392,7 +391,7 @@
                     card.remove();  // Remove the card from the DOM
                 }
                 let size = photoListModule.listSize();
-                console.log(size);
+
                 if (photoListModule.listSize() === 0) {
                     listDOM.toggleStoryBtn(false);
                 }
@@ -525,7 +524,7 @@
 
             let barToShow = event.currentTarget.dataset.tab;
 
-            console.log()// Assuming you're using data-tab attribute on buttons or links
+
 
             // Loop through the tabs object
             for (let tab in tabs) {
