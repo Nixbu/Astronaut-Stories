@@ -8,7 +8,12 @@
      * @constant {string} API_KEY_PARAMETER - Encoded API key for use in query parameters.
      * @constant {string} ROVER_DATA_ENDPOINT - Endpoint for fetching data from NASA's Mars Rover Photos API.
      */
-    const API_KEY = "lrufIrxkoorq8sriuuo3LdPU1Cnu1fnrIpr0kRm0";
+    const API_KEY = config.API_KEY;  // Gets API key from config.js
+    if (!API_KEY || API_KEY === 'YOUR_NASA_API_KEY') {
+        alert('Please add your NASA API key to config.js');
+        return;
+    }
+
     const API_KEY_PARAMETER = `api_key=${API_KEY}`
     const ROVER_DATA_ENDPOINT = "https://api.nasa.gov/mars-photos/api/v1/rovers";
 //=======================================================================================================================
