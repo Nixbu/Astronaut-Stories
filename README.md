@@ -47,6 +47,16 @@ A dynamic web application that lets users explore and curate photos from NASA's 
 3. Serve the application using a local web server
 4. Open in your browser
 
+## Security Note
+
+Never commit your API key to the repository. 
+The config.js file is listed in .gitignore to prevent accidentally exposing your API key. 
+Each person who wants to run this project locally will need to:
+
+1. Get their own API key from NASA
+2. Create their own config.js file
+3. Add their key to their local config.js
+
 ## Usage
 
 1. Enter an Earth date to search for Mars photos
